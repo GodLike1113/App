@@ -12,6 +12,6 @@ public class Dog extends Animal {
     }
 
     private void methodInDog(){
-        System.out.println("恭喜你！成功获得 Dog类中的方法");
+        System.out.println("成功获得 Dog类中的方法");
     }
 }

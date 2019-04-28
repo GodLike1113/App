@@ -1,7 +1,5 @@
 package com.test.chuanyi.myapplication;
 
-import android.app.usage.UsageStats;
-import android.app.usage.UsageStatsManager;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
@@ -16,23 +14,30 @@ import android.os.SystemClock;
 import android.provider.MediaStore;
 import android.provider.Settings;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.DefaultItemAnimator;
+import android.support.v7.widget.DividerItemDecoration;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
+import com.google.gson.Gson;
+import com.test.chuanyi.myapplication.recyclerview.RecyclerViewAdapter;
+
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
-import java.util.GregorianCalendar;
+import java.util.HashMap;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
@@ -43,12 +48,83 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         setContentView(R.layout.activity_main);
 
         findViewById(R.id.click_tv).setOnClickListener(this);
+//        int num =0;
+//        while(true){
+//            Bitmap bitmap =BitmapFactory.decodeResource(getResources(),R.drawable.bizhi);
+//            num++;
+//            System.out.println("num is "+num);
+//        }
+        String externalFilesDir = this.getExternalFilesDir(null).getAbsolutePath() + File.separator + "text.txt";
+        System.out.println("lujing--" + externalFilesDir);
+        File file = new File(externalFilesDir);
+        try {
+            FileWriter fw = new FileWriter(file, true);
+            fw.write("hahhahaha");
+            fw.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        initData();
+    }
+
+    private void initData() {
+        RecyclerView recyclerView = findViewById(R.id.recycler_view);
+        List<String> srcList = new ArrayList<>();
+        for (int i = 0; i < 20; i++) {
+            srcList.add("Num" + i);
+        }
+        LinearLayoutManager manager = new LinearLayoutManager(this);
+        manager.setOrientation(LinearLayoutManager.VERTICAL);
+        recyclerView.setLayoutManager(manager);
+
+        //增加分割线
+        DividerItemDecoration dividerItemDecoration = new DividerItemDecoration(this, DividerItemDecoration.VERTICAL);
+        dividerItemDecoration.setDrawable(getResources().getDrawable(R.drawable.divideritem_decoration));
+        recyclerView.addItemDecoration(dividerItemDecoration);
+
+        //设置Item增加、移除动画
+        recyclerView.setItemAnimator(new DefaultItemAnimator());
+        RecyclerViewAdapter adapter = new RecyclerViewAdapter(this, srcList);
+
+        adapter.setOnItemClickListener(new RecyclerViewAdapter.OnItemClickListener() {
+            @Override
+            public void onItemClickListener(View v, int position) {
+                Toast.makeText(MainActivity.this,"click - "+position,Toast.LENGTH_SHORT).show();
+                Log.d("vivi","click - "+position);
+            }
+        });
+
+        adapter.setOnItemLongClickListener(new RecyclerViewAdapter.OnItemLongClickListener() {
+            @Override
+            public void onItemLongClickListener(View v, int position) {
+                Toast.makeText(MainActivity.this,"longClick - "+position,Toast.LENGTH_SHORT).show();
+                Log.d("vivi","longClick - "+position);
+            }
+        });
+
+        adapter.setOnItemTextClickListener(new RecyclerViewAdapter.OnItemTextClickListener() {
+            @Override
+            public void onTextClickListener(View v, int position) {
+                Toast.makeText(MainActivity.this,"Textclick - "+position,Toast.LENGTH_SHORT).show();
+                Log.d("vivi","Textclick - "+position);
+            }
+
+            @Override
+            public void onTextLongClickListener(View v, int position) {
+                Toast.makeText(MainActivity.this,"TextLongclick - "+position,Toast.LENGTH_SHORT).show();
+                Log.d("vivi","TextLongclick - "+position);
+            }
+        });
+        recyclerView.setAdapter(adapter);
+
     }
 
     @Override
     public void onClick(View v) {
         Toast.makeText(this, "点我了哈哈", Toast.LENGTH_LONG).show();
-        startActivity(new Intent(this,GetAppLaunchInfoActivity.class));
+//        startActivity(new Intent(this,GetAppLaunchInfoActivity.class));
+        startActivity(new Intent(this, A.class));
 
 //        List<String> mobileNum = HardwareInfoUtils.getMobileNum(this);
 //        for (int i = 0; i <mobileNum.size() ; i++) {
@@ -61,7 +137,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 //        }
 //        Log.d("vivi","hhhhhhhhhhhhhhhhhhhhhhhhhhhhhh");
 
-     //   getAlarm(this);
+        //   getAlarm(this);
 
 //        String systemAlarm = getSystemAlarm();
 //        String str = Settings.System.getString(getContentResolver(),
@@ -72,7 +148,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
 //        List<Photo> sDcardImage = getSDcardImage(this);
 //        Log.d("vivi","sDcardImage大小："+sDcardImage.size());
-  //      getAppList(this);
+        //      getAppList(this);
 
 //        new Thread(new Runnable() {
 //            @Override
@@ -82,14 +158,27 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 //
 //            }
 //        }).start();
+        Gson gson = new Gson();
+//        {"bvnFirstName":"linli linli","bvnSurName":"zhang zhang","cc":"86","phone":"18676764937"}
+        HashMap<String, String> map = new HashMap<>();
+        map.put("bvnFirstName", "linli linli");
+        map.put("bvnSurName", "zhang zhang");
+        map.put("cc", "86");
+        map.put("phone", "18676764937");
+        String s = gson.toJson(map);
+        Log.d("vivi", "map转json 是：" + s);
+        Bean bean = gson.fromJson(s, Bean.class);
+        Log.d("vivi", bean.toString());
+
 
     }
 
     /**
      * http://www.cnblogs.com/owner/p/3934736.html
+     *
      * @return
      */
-    public String getSystemAlarm(){
+    public String getSystemAlarm() {
         String str = Settings.System.getString(getContentResolver(),
                 Settings.System.NEXT_ALARM_FORMATTED);
         return str;
@@ -99,8 +188,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         final String tag_alarm = "tag_alarm";
         Uri uri = Uri.parse("content://com.android.alarmclock/alarm");
         Cursor c = context.getContentResolver().query(uri, null, null, null, null);
-        if(c==null){
-            Log.d(tag_alarm,"c为null");
+        if (c == null) {
+            Log.d(tag_alarm, "c为null");
             return;
         }
         Log.i(tag_alarm, "no of records are " + c.getCount());
@@ -122,20 +211,20 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
-    boolean tag =true;
+    boolean tag = true;
 
-    public void test(){
+    public void test() {
         new Thread(
                 new Runnable() {
                     @Override
                     public void run() {
                         try {
                             System.out.println("开始睡眠");
-                            Log.d("vivi","开始睡眠");
+                            Log.d("vivi", "开始睡眠");
                             Thread.sleep(10000);
                             System.out.println("结束睡眠");
-                            Log.d("vivi","结束睡眠");
-                            tag =false;
+                            Log.d("vivi", "结束睡眠");
+                            tag = false;
                         } catch (InterruptedException e) {
                             e.printStackTrace();
                         }
@@ -143,10 +232,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 }
         ).start();
         System.out.println("主线程打印");
-        Log.d("vivi","主线程打印");
+        Log.d("vivi", "主线程打印");
     }
-
-
 
 
     /**
@@ -304,7 +391,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         List<Photo> list = getImages(context, internalUri);
         list.addAll(otherlist);
 
-       Collections.sort(list, new SortByDateMODIFIED());
+        Collections.sort(list, new SortByDateMODIFIED());
         return list;
     }
 
@@ -334,25 +421,25 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             if ((packageInfo.applicationInfo.flags & ApplicationInfo.FLAG_SYSTEM) == 0) // 非系统应用
             {
 
-                long firstInstallTime=packageInfo.firstInstallTime;//应用第一次安装的时间
+                long firstInstallTime = packageInfo.firstInstallTime;//应用第一次安装的时间
                 long lastUpdateTime = packageInfo.lastUpdateTime;//最后更新时间
                 String installTime = sdf.format(new Date(firstInstallTime));
                 String updateTime = sdf.format(new Date(lastUpdateTime));
 
-                int versionCode=packageInfo.versionCode;//应用现在的版本号
-                String versionName=packageInfo.versionName;//应用现在的版本名称
-                String Name="";
+                int versionCode = packageInfo.versionCode;//应用现在的版本号
+                String versionName = packageInfo.versionName;//应用现在的版本名称
+                String Name = "";
 
                 //如下可获得更多信息
-                ApplicationInfo   applicationInfo=packageInfo.applicationInfo;
-                String packageName=applicationInfo.packageName;
+                ApplicationInfo applicationInfo = packageInfo.applicationInfo;
+                String packageName = applicationInfo.packageName;
                 try {
-                    Name=pm.getApplicationLabel(pm.getApplicationInfo(packageName,PackageManager.GET_META_DATA)).toString();
-                } catch (PackageManager.NameNotFoundException e) {
-                    Name = "" ;
+                    Name = pm.getApplicationLabel(pm.getApplicationInfo(packageName, PackageManager.GET_META_DATA)).toString();
+                } catch (Exception e) {
+                    Name = "";
                 }
 
-                Log.d("vivi","包名："+packageName+",应用名字:"+Name+",安装时间："+installTime+",更新时间："+updateTime);
+                Log.d("vivi", "包名：" + packageName + ",应用名字:" + Name + ",安装时间：" + installTime + ",更新时间：" + updateTime);
             } else {
                 // 系统应用
             }
@@ -362,7 +449,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 //    Calendar cal = new GregorianCalendar();
 //       cal.setTime(getDayEnd());
 //        cal.add(Calendar.DAY_OF_MONTH, -1);
- //   https://blog.csdn.net/zhangjin12312/article/details/76855079
+    //   https://blog.csdn.net/zhangjin12312/article/details/76855079
 //    Calendar beginCal = Calendar.getInstance();
 //    beginCal.add(Calendar.HOUR_OF_DAY, -1);
 //    Calendar endCal = Calendar.getInstance();
@@ -375,7 +462,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
      */
     public void uploadLogGetKey(final String urlPath, final String appId, final String appKey, final String timestamp, final String sign) {
         try {
-            Log.d("vivi","Post Thread "+Thread.currentThread().getName());
+            Log.d("vivi", "Post Thread " + Thread.currentThread().getName());
             URL url = new URL(urlPath);
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             conn.setConnectTimeout(5000);
@@ -390,7 +477,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             SystemClock.sleep(1000);
 
             int responseCode = conn.getResponseCode();
-            Log.d("vivi","Receive Thread "+Thread.currentThread().getName());
+            Log.d("vivi", "Receive Thread " + Thread.currentThread().getName());
             if (responseCode == 200) {
                 InputStream in = conn.getInputStream();
                 String result = decodeStream(in);

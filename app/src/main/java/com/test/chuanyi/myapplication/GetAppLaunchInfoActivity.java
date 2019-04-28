@@ -68,6 +68,7 @@ public class GetAppLaunchInfoActivity extends Activity {
             public void onClick(View v) {
 
                 Toast.makeText(GetAppLaunchInfoActivity.this, "hah", Toast.LENGTH_SHORT).show();
+                startActivity(new Intent(GetAppLaunchInfoActivity.this,TestActivity.class));
                 new Thread(
                         new Runnable() {
                             @Override

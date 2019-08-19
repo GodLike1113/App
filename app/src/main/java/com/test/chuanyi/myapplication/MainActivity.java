@@ -1,5 +1,6 @@
 package com.test.chuanyi.myapplication;
 
+import android.app.ActivityManager;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
@@ -10,6 +11,8 @@ import android.database.Cursor;
 import android.media.ExifInterface;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
+import android.os.StatFs;
 import android.os.SystemClock;
 import android.provider.MediaStore;
 import android.provider.Settings;
@@ -23,6 +26,7 @@ import android.view.View;
 import android.widget.Toast;
 
 import com.google.gson.Gson;
+import com.squareup.leakcanary.LeakCanary;
 import com.test.chuanyi.myapplication.recyclerview.RecyclerViewAdapter;
 
 import java.io.ByteArrayOutputStream;
@@ -30,6 +34,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Method;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.text.SimpleDateFormat;
@@ -65,7 +70,97 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             e.printStackTrace();
         }
 
+        if (PhoneUtils.existSDCard()) {
+            long total = PhoneUtils.getSDAllSize();
+            long sdFreeSize = PhoneUtils.getSDFreeSize();
+            Log.d("vivi", "total =" + total + ",FreeSize =" + sdFreeSize);
+        } else {
+            Log.d("vivi", "SD卡不存在");
+        }
         initData();
+
+        File[] externalFilesDir1 = getExternalFilesDirs(Environment.MEDIA_MOUNTED);
+        for (File file1 : externalFilesDir1) {
+            Log.d("vivi", "外置存储卡路径：" + file1);
+        }
+
+        ArrayList<SDCardUtil.SDCardStat> sdCardStats = SDCardUtil.getSDCardStats(this);
+        if (sdCardStats != null) {
+            for (SDCardUtil.SDCardStat sdCardStat : sdCardStats) {
+                if (sdCardStat.name.equals(SDCardUtil.DIR_SINGLE_SDCARD_NAME)) {
+                    Log.e("vivi", "内置存储卡： 可用" + sdCardStat.freeSize / 1024 / 1024 + "M，总共" + sdCardStat.totalSize / 1024 / 1024 + "M");
+                } else if (sdCardStat.name.equals(SDCardUtil.DIR_EXT_SDCARD_NAME)) {
+                    Log.e("vivi", "扩展存储卡： 可用" + sdCardStat.freeSize / 1024 / 1024 + "M，总共" + sdCardStat.totalSize / 1024 / 1024 + "M");
+                }
+            }
+        }
+
+        displayBriefMemory();
+
+        getBaseBandInfo();
+
+        getAppMaxMemory();
+
+        int chargeStatus = HardwareInfoUtils.getChargeStatus(this);
+        Log.d("vivi","chargeStatus:"+chargeStatus);
+    }
+
+
+    private void getAppMaxMemory(){
+        ActivityManager activityManager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
+        int memorySize = activityManager.getMemoryClass();
+        Log.v("vivi","未申请大内存可分配内存大小："+memorySize);
+
+        Runtime rt=Runtime.getRuntime();
+        long maxMemory=rt.maxMemory();
+        Log.v("vivi","已申请大内存可分配内存大小:"+Long.toString(maxMemory/(1024*1024)));
+    }
+    private void getBaseBandInfo() {
+        try {
+
+            Class cl = Class.forName("android.os.SystemProperties");
+
+            Object invoker = cl.newInstance();
+
+            Method m = cl.getMethod("get", new Class[] { String.class,String.class });
+
+            Object result = m.invoke(invoker, new Object[]{"gsm.version.baseband", "no message"});
+
+            Log.d("vivi","基带版本: " +(String)result);
+
+        } catch (Exception e) {
+            Log.d("vivi","获取基带版本信息异常："+e.toString());
+        }
+    }
+
+
+    /**
+     * 得到sdcard的路径
+     *
+     * @return 返回一个字符串数组  下标0:内置sdcard  下标1:外置sdcard
+     */
+    public static String[] getSDCardPath() {
+        String[] sdCardPath = new String[2];
+        File sdFile = Environment.getExternalStorageDirectory();
+        File[] files = sdFile.getParentFile().listFiles();
+        for (File file : files) {
+            if (file.getAbsolutePath().equals(sdFile.getAbsolutePath())) {//外置
+                sdCardPath[1] = sdFile.getAbsolutePath();
+            } else if (file.getAbsolutePath().contains("sdcard")) {//得到内置sdcard
+                sdCardPath[0] = file.getAbsolutePath();
+            }
+        }
+        return sdCardPath;
+    }
+
+    private void displayBriefMemory() {
+        final ActivityManager activityManager = (ActivityManager) getSystemService(ACTIVITY_SERVICE);
+        ActivityManager.MemoryInfo info = new ActivityManager.MemoryInfo();
+        activityManager.getMemoryInfo(info);
+        Log.i("vivi", "系统剩余内存:" + (info.availMem / 1024 / 1024) + "M");
+        Log.i("vivi", "系统总内存:" + (info.totalMem / 1024 / 1024) + "M");
+        Log.i("vivi", "系统是否处于低内存运行：" + info.lowMemory);
+        Log.i("vivi", "当系统剩余内存低于" + info.threshold / 1024 / 1024 + "M时就看成低内存运行");
     }
 
     private void initData() {
@@ -90,30 +185,30 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         adapter.setOnItemClickListener(new RecyclerViewAdapter.OnItemClickListener() {
             @Override
             public void onItemClickListener(View v, int position) {
-                Toast.makeText(MainActivity.this,"click - "+position,Toast.LENGTH_SHORT).show();
-                Log.d("vivi","click - "+position);
+                Toast.makeText(MainActivity.this, "click - " + position, Toast.LENGTH_SHORT).show();
+                Log.d("vivi", "click - " + position);
             }
         });
 
         adapter.setOnItemLongClickListener(new RecyclerViewAdapter.OnItemLongClickListener() {
             @Override
             public void onItemLongClickListener(View v, int position) {
-                Toast.makeText(MainActivity.this,"longClick - "+position,Toast.LENGTH_SHORT).show();
-                Log.d("vivi","longClick - "+position);
+                Toast.makeText(MainActivity.this, "longClick - " + position, Toast.LENGTH_SHORT).show();
+                Log.d("vivi", "longClick - " + position);
             }
         });
 
         adapter.setOnItemTextClickListener(new RecyclerViewAdapter.OnItemTextClickListener() {
             @Override
             public void onTextClickListener(View v, int position) {
-                Toast.makeText(MainActivity.this,"Textclick - "+position,Toast.LENGTH_SHORT).show();
-                Log.d("vivi","Textclick - "+position);
+                Toast.makeText(MainActivity.this, "Textclick - " + position, Toast.LENGTH_SHORT).show();
+                Log.d("vivi", "Textclick - " + position);
             }
 
             @Override
             public void onTextLongClickListener(View v, int position) {
-                Toast.makeText(MainActivity.this,"TextLongclick - "+position,Toast.LENGTH_SHORT).show();
-                Log.d("vivi","TextLongclick - "+position);
+                Toast.makeText(MainActivity.this, "TextLongclick - " + position, Toast.LENGTH_SHORT).show();
+                Log.d("vivi", "TextLongclick - " + position);
             }
         });
         recyclerView.setAdapter(adapter);
@@ -124,7 +219,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public void onClick(View v) {
         Toast.makeText(this, "点我了哈哈", Toast.LENGTH_LONG).show();
 //        startActivity(new Intent(this,GetAppLaunchInfoActivity.class));
-        startActivity(new Intent(this, A.class));
+        startActivity(new Intent(this, TestListViewActivity.class));
 
 //        List<String> mobileNum = HardwareInfoUtils.getMobileNum(this);
 //        for (int i = 0; i <mobileNum.size() ; i++) {

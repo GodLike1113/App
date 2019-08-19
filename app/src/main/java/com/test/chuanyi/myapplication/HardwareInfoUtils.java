@@ -2,14 +2,18 @@ package com.test.chuanyi.myapplication;
 
 import android.Manifest;
 import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.BatteryManager;
 import android.os.Build;
 import android.provider.CalendarContract;
 import android.support.v4.content.ContextCompat;
 import android.telephony.TelephonyManager;
 import android.util.Log;
+import android.widget.Toast;
 
 
 import java.lang.reflect.InvocationTargetException;
@@ -41,8 +45,8 @@ public class HardwareInfoUtils {
         if (!isPhone) { //判断是否为手机
             return mobileList;
         }
-       boolean isDouble= isDoubleSim(context);
-        Log.d("vivi","是否为双卡："+isDouble);
+        boolean isDouble = isDoubleSim(context);
+        Log.d("vivi", "是否为双卡：" + isDouble);
         // TelephonyManager tm = (TelephonyManager) Utils.getApp().getSystemService(Context.TELEPHONY_SERVICE);
 
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M
@@ -129,8 +133,42 @@ public class HardwareInfoUtils {
             String maxReminders = cursor.getString(cursor.getColumnIndex(CalendarContract.Events.MAX_REMINDERS));
             String allowedReminders = cursor.getString(cursor.getColumnIndex(CalendarContract.Events.ALLOWED_REMINDERS));
 
-            Log.d("vivi","获取设置日历信息："+"id="+id+",title="+title+",dtstart="+dtstart+",dtend="+dtend+",description="+description+",loaction="+location);
+            Log.d("vivi", "获取设置日历信息：" + "id=" + id + ",title=" + title + ",dtstart=" + dtstart + ",dtend=" + dtend + ",description=" + description + ",loaction=" + location);
         }
         cursor.close();
+    }
+
+    /**
+     * 获取手机的充电方式
+     *
+     * @param context
+     * @return 1为电源充电 ，2为USB充电，-1为未充电
+     */
+    public static int getChargeStatus(Context context) {
+        IntentFilter ifilter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
+        Intent batteryStatusIntent = context.registerReceiver(null, ifilter);
+        //如果设备正在充电，可以提取当前的充电状态和充电方式（无论是通过 USB 还是交流充电器），如下所示：
+
+        // Are we charging / charged?
+        int status = batteryStatusIntent.getIntExtra(BatteryManager.EXTRA_STATUS, -1);
+        boolean isCharging = status == BatteryManager.BATTERY_STATUS_CHARGING || status == BatteryManager.BATTERY_STATUS_FULL;
+
+        // How are we charging?
+        int chargePlug = batteryStatusIntent.getIntExtra(BatteryManager.EXTRA_PLUGGED, -1);
+        boolean usbCharge = chargePlug == BatteryManager.BATTERY_PLUGGED_USB;
+        boolean acCharge = chargePlug == BatteryManager.BATTERY_PLUGGED_AC;
+
+        if (isCharging) {
+            if (usbCharge) {
+                Toast.makeText(context, "手机正处于USB连接！", Toast.LENGTH_SHORT).show();
+                return BatteryManager.BATTERY_PLUGGED_USB;
+            } else if (acCharge) {
+                Toast.makeText(context, "手机通过电源充电中！", Toast.LENGTH_SHORT).show();
+                return BatteryManager.BATTERY_PLUGGED_AC;
+            }
+        } else {
+            Toast.makeText(context, "手机未连接USB线！", Toast.LENGTH_SHORT).show();
+        }
+        return -1;
     }
 }

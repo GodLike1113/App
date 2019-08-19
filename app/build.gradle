@@ -3,7 +3,7 @@ apply plugin: 'com.android.application'
 android {
     compileSdkVersion 28
     defaultConfig {
-        applicationId "com.test.chuanyi.myapplication"
+        applicationId "com.test.chuanyi.app"
         minSdkVersion 19
         targetSdkVersion 28
         versionCode 1
@@ -28,6 +28,9 @@ dependencies {
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'com.android.support.test:runner:1.0.2'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
+
+    debugImplementation 'com.squareup.leakcanary:leakcanary-android:1.5'
+    releaseImplementation 'com.squareup.leakcanary:leakcanary-android-no-op:1.5'
 
     implementation 'com.squareup.retrofit2:converter-gson:2.3.0'
 }

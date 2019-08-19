@@ -31,52 +31,77 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
 
     @NonNull
     @Override
-    public MyViewHolder onCreateViewHolder(@NonNull ViewGroup viewGroup, int position) {
-        Log.d("vivi", "onCreateViewHolder : position = " + position);
-        return new MyViewHolder(LayoutInflater.from(mContext).inflate(R.layout.recyclerview_item, viewGroup, false));
+    public MyViewHolder onCreateViewHolder(@NonNull ViewGroup viewGroup, int viewType) {
+        Log.d("vivi", "onCreateViewHolder : viewType = " + viewType);
+        MyViewHolder viewHolder1 = new MyViewHolder(LayoutInflater.from(mContext).inflate(R.layout.recyclerview_item, viewGroup, false));
+        switch (viewType) {
+            case 0:
+                cViewType = 0;
+                break;
+            case 1:
+                cViewType = 1;
+                break;
+        }
+        return viewHolder1;
     }
+
+    int cViewType = -1;
 
     @Override
     public void onBindViewHolder(@NonNull MyViewHolder myViewHolder, final int position) {
-        Log.d("vivi", "onBindViewHolder bind : position = " + position);
-        myViewHolder.itemTv.setText(srcList.get(position));
+        Log.d("vivi", "onBindViewHolder bind : position = " + position + ",ViewType =" + cViewType);
+        if (cViewType == 0) {
+            myViewHolder.itemTv.setText(srcList.get(position));
 
-        if (onItemClickListener != null) {
-            myViewHolder.rootView.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    onItemClickListener.onItemClickListener(v, position);
-                }
-            });
+            if (onItemClickListener != null) {
+                myViewHolder.rootView.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        onItemClickListener.onItemClickListener(v, position);
+                    }
+                });
+            }
+            if (onItemLongClickListener != null) {
+                myViewHolder.rootView.setOnLongClickListener(new View.OnLongClickListener() {
+                    @Override
+                    public boolean onLongClick(View v) {
+                        onItemLongClickListener.onItemLongClickListener(v, position);
+                        return true; //消费事件
+                    }
+                });
+            }
+            //TextView 设置点击事件
+            if (onItemTextClickListener != null) {
+                myViewHolder.itemTv2.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        onItemTextClickListener.onTextClickListener(v, position);
+                    }
+                });
+
+                myViewHolder.itemTv2.setOnLongClickListener(new View.OnLongClickListener() {
+                    @Override
+                    public boolean onLongClick(View v) {
+                        onItemTextClickListener.onTextLongClickListener(v, position);
+                        return true;
+                    }
+                });
+            }
+        } else if (cViewType == 1) {
+            myViewHolder.itemTv.setText(srcList.get(position)+"haha");
         }
 
-        if (onItemLongClickListener != null) {
-            myViewHolder.rootView.setOnLongClickListener(new View.OnLongClickListener() {
-                @Override
-                public boolean onLongClick(View v) {
-                    onItemLongClickListener.onItemLongClickListener(v, position);
-                    return true; //消费事件
-                }
-            });
-        }
 
-        //TextView 设置点击事件
-        if (onItemTextClickListener != null) {
-            myViewHolder.itemTv2.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    onItemTextClickListener.onTextClickListener(v,position);
-                }
-            });
+    }
 
-            myViewHolder.itemTv2.setOnLongClickListener(new View.OnLongClickListener() {
-                @Override
-                public boolean onLongClick(View v) {
-                    onItemTextClickListener.onTextLongClickListener(v,position);
-                    return true;
-                }
-            });
-        }
+    @Override
+    public int getItemViewType(int position) {
+      if(position % 2 == 0 ){
+          Log.d("vivi", "getItemViewType position = " + position + ",ViewType =0");
+          return 0;
+      }
+        Log.d("vivi", "getItemViewType position = " + position + ",ViewType =1");
+      return 1;
     }
 
     @Override
@@ -92,9 +117,10 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
         this.onItemLongClickListener = onItemLongClickListener;
     }
 
-    public void setOnItemTextClickListener(OnItemTextClickListener onItemTextClickListener){
-        this.onItemTextClickListener =onItemTextClickListener;
+    public void setOnItemTextClickListener(OnItemTextClickListener onItemTextClickListener) {
+        this.onItemTextClickListener = onItemTextClickListener;
     }
+
     private OnItemClickListener onItemClickListener;
     private OnItemLongClickListener onItemLongClickListener;
     private OnItemTextClickListener onItemTextClickListener;
@@ -120,9 +146,18 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
 
         public MyViewHolder(@NonNull View itemView) {
             super(itemView);
-            rootView = itemView.findViewById(R.id.root_item_view);
-            itemTv = itemView.findViewById(R.id.recycler_item_tv);
-            itemTv2 = itemView.findViewById(R.id.recycler_item_tv2);
+//            if (cViewType == 0) {
+//                rootView = itemView.findViewById(R.id.root_item_view);
+//                itemTv = itemView.findViewById(R.id.recycler_item_tv);
+//                itemTv2 = itemView.findViewById(R.id.recycler_item_tv2);
+//            } else if (cViewType == 1) {
+//                itemTv_1 = itemView.findViewById(R.id.recycler_item_1_tv);
+//            }
+
+                rootView = itemView.findViewById(R.id.root_item_view);
+                itemTv = itemView.findViewById(R.id.recycler_item_tv);
+                itemTv2 = itemView.findViewById(R.id.recycler_item_tv2);
+
         }
     }
 }

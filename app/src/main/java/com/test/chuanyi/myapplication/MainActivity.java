@@ -29,7 +29,6 @@ import android.widget.Toast;
 
 import com.google.gson.Gson;
 import com.test.chuanyi.myapplication.recyclerview.RecyclerViewAdapter;
-import com.transsnet.commonlib.TestUtils;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -57,7 +56,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        TestUtils.toast(this);
 
         findViewById(R.id.click_tv).setOnClickListener(this);
 

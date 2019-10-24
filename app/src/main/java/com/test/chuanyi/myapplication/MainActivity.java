@@ -4,18 +4,20 @@ import android.app.ActivityManager;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.media.ExifInterface;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
-import android.os.StatFs;
 import android.os.SystemClock;
 import android.provider.MediaStore;
 import android.provider.Settings;
+import android.support.annotation.RequiresApi;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.DividerItemDecoration;
@@ -26,8 +28,8 @@ import android.view.View;
 import android.widget.Toast;
 
 import com.google.gson.Gson;
-import com.squareup.leakcanary.LeakCanary;
 import com.test.chuanyi.myapplication.recyclerview.RecyclerViewAdapter;
+import com.transsnet.commonlib.TestUtils;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -36,6 +38,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Method;
 import java.net.HttpURLConnection;
+import java.net.NetworkInterface;
+import java.net.SocketException;
 import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -44,21 +48,19 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.UUID;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
+    @RequiresApi(api = Build.VERSION_CODES.N)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        TestUtils.toast(this);
 
         findViewById(R.id.click_tv).setOnClickListener(this);
-//        int num =0;
-//        while(true){
-//            Bitmap bitmap =BitmapFactory.decodeResource(getResources(),R.drawable.bizhi);
-//            num++;
-//            System.out.println("num is "+num);
-//        }
+
         String externalFilesDir = this.getExternalFilesDir(null).getAbsolutePath() + File.separator + "text.txt";
         System.out.println("lujing--" + externalFilesDir);
         File file = new File(externalFilesDir);
@@ -102,19 +104,147 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         getAppMaxMemory();
 
         int chargeStatus = HardwareInfoUtils.getChargeStatus(this);
-        Log.d("vivi","chargeStatus:"+chargeStatus);
+//        Log.d("vivi", "chargeStatus:" + chargeStatus);
+
+        String uuid = getUUID();
+        Log.d("vivi", "uuid:" + uuid);
+
+        try {
+            getNewLocalMacAddress();
+        } catch (SocketException e) {
+            e.printStackTrace();
+        }
+
+
+        testBroadCastReceiver();
+    }
+
+    MyBoradCast receiver = null;
+
+    private void testBroadCastReceiver() {
+        receiver = new MyBoradCast();
+        String action = "com.test.action.haha";
+        IntentFilter intentFilter = new IntentFilter(action);
+        registerReceiver(receiver, intentFilter);
     }
 
 
-    private void getAppMaxMemory(){
+    private String getWifiMacAddress() {
+        String defaultMac = "02:00:00:00:00:00";
+        try {
+            List<NetworkInterface> interfaces = Collections.list(NetworkInterface.getNetworkInterfaces());
+            for (NetworkInterface ntwInterface : interfaces) {
+
+                if (ntwInterface.getName().equalsIgnoreCase("wlan0")) {//之前是p2p0，修正为wlan
+                    byte[] byteMac = ntwInterface.getHardwareAddress();
+                    if (byteMac == null) {
+                        // return null;
+                    }
+                    StringBuilder strBuilder = new StringBuilder();
+                    for (int i = 0; i < byteMac.length; i++) {
+                        strBuilder.append(String.format("%02X:", byteMac[i]));
+                    }
+
+                    if (strBuilder.length() > 0) {
+                        strBuilder.deleteCharAt(strBuilder.length() - 1);
+                    }
+
+                    return strBuilder.toString();
+                }
+
+            }
+        } catch (Exception e) {
+//             Log.d(TAG, e.getMessage());
+        }
+        return defaultMac;
+    }
+
+    public static String getDeviceSN() {
+        String serialNumber = android.os.Build.SERIAL;
+
+        return serialNumber;
+    }
+
+
+    @RequiresApi(api = Build.VERSION_CODES.N)
+    public void getNewLocalMacAddress() throws SocketException {
+//        DevicePolicyManager devicePolicyManager = (DevicePolicyManager) getSystemService(Context.DEVICE_POLICY_SERVICE);
+//        ComponentName componentName = new ComponentName(this, MainActivity.class);
+//        String wifiMacAddress = devicePolicyManager.getWifiMacAddress(componentName);
+//        Log.i("vivi", "WifiMacAddress ---- " + wifiMacAddress);
+
+
+        NetworkInterface networkInterface = NetworkInterface.getByName("wlan0");
+        byte[] mac = networkInterface.getHardwareAddress();
+        String macString = "";
+        for (byte b : mac) {
+            macString = macString + b + ": ";
+        }
+        Log.d("vivi", "mac:" + macString);
+    }
+
+
+    public String getUUID() {
+
+        String serial = null;
+
+        String m_szDevIDShort = "35" +
+                Build.BOARD.length() % 10 + Build.BRAND.length() % 10 +
+
+                Build.CPU_ABI.length() % 10 + Build.DEVICE.length() % 10 +
+
+                Build.DISPLAY.length() % 10 + Build.HOST.length() % 10 +
+
+                Build.ID.length() % 10 + Build.MANUFACTURER.length() % 10 +
+
+                Build.MODEL.length() % 10 + Build.PRODUCT.length() % 10 +
+
+                Build.TAGS.length() % 10 + Build.TYPE.length() % 10 +
+
+                Build.USER.length() % 10; //13 位
+
+        Log.v("vivi", "BOARD:" + Build.BOARD.length() % 10 + ",BRAND:" + Build.BRAND.length() % 10 +
+                ",CPU_ABI:" + Build.CPU_ABI.length() % 10 + ",DEVICE:" + Build.DEVICE.length() % 10 +
+                ",DISPLAY:" + Build.DISPLAY.length() % 10 + ",HOST:" + Build.HOST.length() % 10 +
+                ",ID:" + Build.ID.length() % 10 + ",MANUFACTURER:" + Build.MANUFACTURER.length() % 10 +
+                ",MODEL:" + Build.MODEL.length() % 10 + ",PRODUCT:" + Build.PRODUCT.length() % 10 +
+                ",TAGS:" + Build.TAGS.length() % 10 + ",TYPE:" + Build.TYPE.length() % 10 +
+                ",USER:" + Build.USER.length() % 10);
+
+        Log.v("vivi", "BOARD:" + Build.BOARD + ",BRAND:" + Build.BRAND +
+                ",CPU_ABI:" + Build.CPU_ABI + ",DEVICE:" + Build.DEVICE +
+                ",DISPLAY:" + Build.DISPLAY + ",HOST:" + Build.HOST +
+                ",ID:" + Build.ID + ",MANUFACTURER:" + Build.MANUFACTURER +
+                ",MODEL:" + Build.MODEL + ",PRODUCT:" + Build.PRODUCT +
+                ",TAGS:" + Build.TAGS + ",TYPE:" + Build.TYPE +
+                ",USER:" + Build.USER);
+
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                serial = android.os.Build.getSerial();
+            } else {
+                serial = Build.SERIAL;
+            }
+            //API>=9 使用serial号
+            return new UUID(m_szDevIDShort.hashCode(), serial.hashCode()).toString();
+        } catch (Exception exception) {
+            //serial需要一个初始化
+            serial = "serial"; // 随便一个初始化
+        }
+        //使用硬件信息拼凑出来的15位号码
+        return new UUID(m_szDevIDShort.hashCode(), serial.hashCode()).toString();
+    }
+
+    private void getAppMaxMemory() {
         ActivityManager activityManager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
         int memorySize = activityManager.getMemoryClass();
-        Log.v("vivi","未申请大内存可分配内存大小："+memorySize);
+        Log.v("vivi", "未申请大内存可分配内存大小：" + memorySize);
 
-        Runtime rt=Runtime.getRuntime();
-        long maxMemory=rt.maxMemory();
-        Log.v("vivi","已申请大内存可分配内存大小:"+Long.toString(maxMemory/(1024*1024)));
+        Runtime rt = Runtime.getRuntime();
+        long maxMemory = rt.maxMemory();
+        Log.v("vivi", "已申请大内存可分配内存大小:" + Long.toString(maxMemory / (1024 * 1024)));
     }
+
     private void getBaseBandInfo() {
         try {
 
@@ -122,14 +252,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
             Object invoker = cl.newInstance();
 
-            Method m = cl.getMethod("get", new Class[] { String.class,String.class });
+            Method m = cl.getMethod("get", new Class[]{String.class, String.class});
 
             Object result = m.invoke(invoker, new Object[]{"gsm.version.baseband", "no message"});
 
-            Log.d("vivi","基带版本: " +(String)result);
+            Log.d("vivi", "基带版本: " + (String) result);
 
         } catch (Exception e) {
-            Log.d("vivi","获取基带版本信息异常："+e.toString());
+            Log.d("vivi", "获取基带版本信息异常：" + e.toString());
         }
     }
 
@@ -216,10 +346,20 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        unregisterReceiver(receiver);
+    }
+
+    @Override
     public void onClick(View v) {
         Toast.makeText(this, "点我了哈哈", Toast.LENGTH_LONG).show();
 //        startActivity(new Intent(this,GetAppLaunchInfoActivity.class));
-        startActivity(new Intent(this, TestListViewActivity.class));
+//        startActivity(new Intent(this, TestListViewActivity.class));
+        String action ="com.test.action.haha";
+        Intent intent = new Intent(action);
+        intent.putExtra("tag","This is My Tag");
+        sendBroadcast(intent);
 
 //        List<String> mobileNum = HardwareInfoUtils.getMobileNum(this);
 //        for (int i = 0; i <mobileNum.size() ; i++) {
@@ -599,4 +739,5 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         return content;
 
     }
+
 }

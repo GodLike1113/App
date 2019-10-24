@@ -3,12 +3,14 @@
     xmlns:tools="http://schemas.android.com/tools"
     package="com.test.chuanyi.myapplication">
 
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <uses-permission android:name="android.permission.READ_CALENDAR" />
     <uses-permission android:name="android.permission.WRITE_CALENDAR" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACTION_USAGE_ACCESS_SETTINGS" />
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
     <uses-permission
         android:name="android.permission.PACKAGE_USAGE_STATS"
         tools:ignore="ProtectedPermissions" />
@@ -20,11 +22,11 @@
 
     <application
         android:allowBackup="true"
-        android:icon="@drawable/app_icon"
+        android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
-        android:roundIcon="@mipmap/ic_launcher_round"
-        android:supportsRtl="true"
         android:largeHeap="true"
+        android:roundIcon="@mipmap/ic_launcher"
+        android:supportsRtl="true"
         android:theme="@style/AppTheme">
 
         <!--  全面屏适配-->
@@ -32,7 +34,8 @@
             android:name="android.max_aspect"
             android:value="2.1" />
 
-        <activity android:name=".MainActivity">
+        <activity android:name=".MainActivity"
+            android:theme="@style/topic">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

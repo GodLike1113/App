@@ -58,7 +58,7 @@ public class GreenDaoActivity extends Activity {
 //            LogUtils.d("special :name:"+person.getName());
 //        }
 //        List<Person> list = mDbController.searchAll();
-
+        Log.d("vivi","从Feature1.0分支");
     }
 
 

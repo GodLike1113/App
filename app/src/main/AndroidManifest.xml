@@ -34,7 +34,8 @@
             android:name="android.max_aspect"
             android:value="2.1" />
 
-        <activity android:name=".RXJavaActivity"
+        <activity
+            android:name=".RXJavaActivity"
             android:theme="@style/topic">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -45,6 +46,10 @@
 
         <activity
             android:name="com.test.chuanyi.myapplication.GetAppLaunchInfoActivity"
+            android:screenOrientation="portrait"
+            android:windowSoftInputMode="adjustPan" />
+        <activity
+            android:name="com.test.chuanyi.myapplication.GreenDaoActivity"
             android:screenOrientation="portrait"
             android:windowSoftInputMode="adjustPan" />
 
@@ -68,8 +73,9 @@
             android:name="com.test.chuanyi.myapplication.TestListViewActivity"
             android:screenOrientation="portrait"
             android:windowSoftInputMode="adjustPan" />
-        <activity android:name="com.test.chuanyi.myapplication.MainActivity"
-            android:windowSoftInputMode="adjustResize"/>
+        <activity
+            android:name="com.test.chuanyi.myapplication.MainActivity"
+            android:windowSoftInputMode="adjustResize" />
     </application>
 
 </manifest>

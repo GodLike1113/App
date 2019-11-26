@@ -29,6 +29,7 @@ import android.widget.Toast;
 
 import com.google.gson.Gson;
 import com.test.chuanyi.myapplication.recyclerview.RecyclerViewAdapter;
+import com.transsnet.mylibrary.ToastUtils;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -113,7 +114,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             e.printStackTrace();
         }
 
-
+        ToastUtils.show(this,"hahah");
         testBroadCastReceiver();
     }
 

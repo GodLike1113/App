@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <Button
+        android:layout_width="80dp"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:text="增加"
+        android:onClick="insertClick"
+        android:textColor="#fff" />
+    <Button
+        android:layout_width="80dp"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:text="删除"
+        android:onClick="deleteClick"
+        android:textColor="#fff" />
+    <Button
+        android:layout_width="80dp"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:onClick="updateClick"
+        android:text="修改"
+        android:textColor="#fff" />
+    <Button
+        android:layout_width="80dp"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:onClick="queryClick"
+        android:text="查询"
+        android:textColor="#fff" />
+
+</LinearLayout>
